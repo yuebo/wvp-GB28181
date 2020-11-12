@@ -3,6 +3,8 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台�
 流媒体服务基于ZLMediaKit-https://github.com/xiongziliang/ZLMediaKit
 前段页面基于MediaServerUI进行修改.
 
+本版本修改了INVITE部分，相关资料参考[https://www.cnblogs.com/dpf-10/p/8915723.html](https://www.cnblogs.com/dpf-10/p/8915723.html)
+
 # 应用场景：
 支持摄像机、平台、NVR等设备接入.
 # 项目目标
@@ -53,3 +55,31 @@ QQ群: 901799015
 # 致谢
 感谢作者[夏楚](https://github.com/xiongziliang) 提供这么棒的开源流媒体服务框架  
 
+
+# 项目调式相关
+
+## 使用docker部署ZLMediaKit
+```bash
+docker run -id --net host --name media panjjo/zlmediakit
+```
+注意要使用--net=host参数，因为码流上传的时候端口是动态的。
+
+## 修改相关配置
+
+```bash
+spring:
+  redis:
+    host: 192.168.7.93 # Redis服务器IP
+sip:
+  ip: 192.168.8.192
+media: #zlm服务器的ip与http端口, 重点: 这是http端口
+  ip: 192.168.7.202 #ZLMediaKit的IP
+```
+## 下周EasyGBD进行调试
+如果当前没有设备，可以使用[EasyGBD](http://app.tsingsee.com/easygbd)来模拟，安装后填写:
+1. SIP服务器地址为上面的sip.ip相同的值
+2. SIP服务器端口填写为sip.port相同的值
+3. SIP用户名和SIP用户认证ID填写为自己设备的编码，如34020000001320000099
+4. SIP用户认证密码填写为12345678
+5. 点击注册等待注册成功
+6. 访问[sip服务器](http://localhost:18080)，用admin/admin登录，登录后便可以进行直播了。

@@ -95,9 +95,10 @@ public class ZLMRunner implements CommandLineRunner {
 
     private void saveZLMConfig() {
         String hookIP = sipIP;
-        if (mediaIp.equals(sipIP)) {
-            hookIP = "127.0.0.1";
-        }
+        //不需要判断本机了
+//        if (mediaIp.equals(sipIP)) {
+//            hookIP = "127.0.0.1";
+//        }
 
         String hookPrex = String.format("http://%s:%s/index/hook", hookIP, serverPort);
         Map<String, Object> param = new HashMap<>();

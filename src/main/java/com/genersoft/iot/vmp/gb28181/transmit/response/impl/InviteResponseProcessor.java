@@ -2,18 +2,21 @@ package com.genersoft.iot.vmp.gb28181.transmit.response.impl;
 
 import java.text.ParseException;
 
-import javax.sip.Dialog;
-import javax.sip.InvalidArgumentException;
-import javax.sip.ResponseEvent;
-import javax.sip.SipException;
+import javax.sip.*;
 import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
+import javax.sip.header.FromHeader;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import gov.nist.javax.sip.header.Contact;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -31,7 +34,10 @@ import com.genersoft.iot.vmp.gb28181.transmit.response.ISIPResponseProcessor;
 public class InviteResponseProcessor implements ISIPResponseProcessor {
 
 	private final static Logger logger = LoggerFactory.getLogger(SIPProcessorFactory.class);
-
+	@Autowired
+	private IVideoManagerStorager storager;
+	@Autowired
+	private SipFactory sipFactory;
 	/**
 	 * 处理invite响应
 	 * 
@@ -49,6 +55,10 @@ public class InviteResponseProcessor implements ISIPResponseProcessor {
 			// 成功响应
 			// 下发ack
 			if (statusCode == Response.OK) {
+				String url = ((Contact)response.getHeader("Contact")).getAddress().getURI().toString();
+				String id=StringUtils.substringBefore(StringUtils.substringAfter(url,":"),"@");
+				Device device=storager.queryVideoDevice(id);
+				//				storager.queryVideoDevice(response.)
 				// ClientTransaction clientTransaction = evt.getClientTransaction();
 				// if(clientTransaction == null){
 				// logger.error("回复ACK时，clientTransaction为null >>> {}",response);
@@ -79,17 +89,19 @@ public class InviteResponseProcessor implements ISIPResponseProcessor {
 				CSeqHeader cseq = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
 				Request reqAck = dialog.createAck(cseq.getSeqNumber());
 
-				SipURI requestURI = (SipURI) reqAck.getRequestURI();
-				ViaHeader viaHeader = (ViaHeader) response.getHeader(ViaHeader.NAME);
-				// String viaHost =viaHeader.getHost();
-				//getHost()函数取回的IP地址是“[xxx.xxx.xxx.xxx:yyyy]”的格式，需用正则表达式截取为“xxx.xxx.xxx.xxx"格式
-				// Pattern p = Pattern.compile("(?<=//|)((\\w)+\\.)+\\w+");
-				// Matcher matcher = p.matcher(viaHeader.getHost());
-				// if (matcher.find()) {
-				// 	requestURI.setHost(matcher.group());
-				// }
-				requestURI.setHost(viaHeader.getHost());
-				requestURI.setPort(viaHeader.getPort());
+//				SipURI requestURI = (SipURI) reqAck.getRequestURI();
+//				ViaHeader viaHeader = (ViaHeader) response.getHeader(ViaHeader.NAME);
+//				// String viaHost =viaHeader.getHost();
+//				//getHost()函数取回的IP地址是“[xxx.xxx.xxx.xxx:yyyy]”的格式，需用正则表达式截取为“xxx.xxx.xxx.xxx"格式
+//				// Pattern p = Pattern.compile("(?<=//|)((\\w)+\\.)+\\w+");
+//				// Matcher matcher = p.matcher(viaHeader.getHost());
+//				// if (matcher.find()) {
+//				// 	requestURI.setHost(matcher.group());
+//				// }
+//				requestURI.setHost(viaHeader.getHost());
+//				requestURI.setPort(viaHeader.getPort());
+				SipURI requestURI = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(), device.getHost().getAddress());
+
 				reqAck.setRequestURI(requestURI);
 				dialog.sendAck(reqAck);
 			}
